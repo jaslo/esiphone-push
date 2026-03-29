@@ -40,6 +40,9 @@ const deviceTokens = new Set();
 // ---------------------------------------------------------------------------
 
 async function sendSilentPush(deviceToken) {
+    // Clean token — remove any spaces, brackets, or non-hex characters
+    const cleanToken = deviceToken.replace(/[^a-f0-9]/gi, '');
+ 
     const note = new apn.Notification();
     note.topic           = config.apn.bundleId;
     note.pushType        = 'background';
