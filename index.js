@@ -20,6 +20,30 @@ const config = {
     pollIntervalMs: 5 * 60 * 1000,
 };
 
+const fs = require('fs');
+const TOKENS_FILE = '/data/tokens.json';
+
+function saveTokens() {
+    try {
+        fs.mkdirSync('/data', { recursive: true });
+        fs.writeFileSync(TOKENS_FILE, JSON.stringify([...deviceTokens]));
+    } catch (e) {
+        console.error('Failed to save tokens:', e.message);
+    }
+}
+
+function loadTokens() {
+    try {
+        if (fs.existsSync(TOKENS_FILE)) {
+            const tokens = JSON.parse(fs.readFileSync(TOKENS_FILE, 'utf8'));
+            tokens.forEach(t => deviceTokens.add(t));
+            console.log(`📂 Loaded ${deviceTokens.size} token(s) from disk`);
+        }
+    } catch (e) {
+        console.error('Failed to load tokens:', e.message);
+    }
+}
+
 // ---------------------------------------------------------------------------
 // APNs provider (node-apn handles HTTP/2 and JWT automatically)
 // ---------------------------------------------------------------------------
@@ -62,6 +86,7 @@ async function sendSilentPush(deviceToken) {
             failure.response?.reason === 'Unregistered') {
             deviceTokens.delete(deviceToken);
             console.log(`🗑 Removed invalid token ${deviceToken.slice(0, 8)}...`);
+            saveTokens();
         }
     }
 }
@@ -146,6 +171,7 @@ const server = http.createServer((req, res) => {
                     throw new Error('Invalid token length');
                 }
                 deviceTokens.add(cleanToken);
+                saveTokens();
 
                 console.log(`📱 Device registered FULL TOKEN: ${cleanToken} (total: ${deviceTokens.size})`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
@@ -168,6 +194,7 @@ server.listen(PORT, () => {
     console.log(`🚀 Push service listening on port ${PORT}`);
     console.log(`📡 Nightscout: ${config.ns.url}`);
     console.log(`🔔 Bundle ID: ${config.apn.bundleId}`);
+    loadTokens();
     poll();
     setInterval(poll, config.pollIntervalMs);
 });
