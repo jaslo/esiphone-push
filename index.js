@@ -143,6 +143,7 @@ const server = http.createServer((req, res) => {
                 console.log(`📱 Device registered: ${token.slice(0, 8)}... (total: ${deviceTokens.size})`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'registered' }));
+                poll();
             } catch (e) {
                 res.writeHead(400);
                 res.end(JSON.stringify({ error: e.message }));
