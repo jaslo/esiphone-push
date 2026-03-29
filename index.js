@@ -30,7 +30,7 @@ const apnProvider = new apn.Provider({
         keyId:   config.apn.keyId,
         teamId:  config.apn.teamId,
     },
-    production: false,
+    production: true,
 });
 
 const deviceTokens = new Set();
