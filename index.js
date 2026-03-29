@@ -136,9 +136,17 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             try {
-                const { cleanToken } = JSON.parse(body);
-                if (!cleanToken || typeof cleanToken !== 'string') throw new Error('Invalid token');
+                const { token } = JSON.parse(body);
+                if (!token || typeof token !== 'string') throw new Error('Invalid token');
+                const cleanToken = token.replace(/[^a-f0-9]/gi, '');
+                console.log(`📱 Raw token length: ${token.length}, clean token length: ${cleanToken.length}`);
+                console.log(`📱 Raw token: ${token}`);
+                if (cleanToken.length !== 64) {
+                    console.error(`❌ Invalid token length: ${cleanToken.length} (expected 64)`);
+                    throw new Error('Invalid token length');
+                }
                 deviceTokens.add(cleanToken);
+
                 console.log(`📱 Device registered FULL TOKEN: ${cleanToken} (total: ${deviceTokens.size})`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'registered' }));
