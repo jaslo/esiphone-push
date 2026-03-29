@@ -184,7 +184,25 @@ const server = http.createServer((req, res) => {
         });
         return;
     }
-
+    if (req.method === 'POST' && req.url === '/unregister') {
+        let body = '';
+        req.on('data', chunk => body += chunk);
+        req.on('end', () => {
+            try {
+                const { token } = JSON.parse(body);
+                const cleanToken = token.replace(/[^a-f0-9]/gi, '');
+                deviceTokens.delete(cleanToken);
+                console.log(`🗑 Token unregistered: ${cleanToken.slice(0, 8)}... (total: ${deviceTokens.size})`);
+                saveTokens();
+                res.writeHead(200, { 'Content-Type': 'application/json' });
+                res.end(JSON.stringify({ status: 'unregistered' }));
+            } catch (e) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ error: e.message }));
+            }
+        });
+        return;
+    }
     res.writeHead(404);
     res.end();
 });
