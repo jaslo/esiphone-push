@@ -57,8 +57,7 @@ async function sendSilentPush(deviceToken) {
     }
     if (result.failed.length > 0) {
         const failure = result.failed[0];
-        console.error(`❌ Push failed: ${failure.error || failure.response?.reason}`);
-        // Remove invalid tokens
+        console.error(`❌ Push failed: ${failure.error || failure.response?.reason} token: ${deviceToken}`);        // Remove invalid tokens
         if (failure.response?.reason === 'BadDeviceToken' ||
             failure.response?.reason === 'Unregistered') {
             deviceTokens.delete(deviceToken);
@@ -137,10 +136,10 @@ const server = http.createServer((req, res) => {
         req.on('data', chunk => body += chunk);
         req.on('end', () => {
             try {
-                const { token } = JSON.parse(body);
-                if (!token || typeof token !== 'string') throw new Error('Invalid token');
-                deviceTokens.add(token);
-                console.log(`📱 Device registered: ${token.slice(0, 8)}... (total: ${deviceTokens.size})`);
+                const { cleanToken } = JSON.parse(body);
+                if (!cleanToken || typeof cleanToken !== 'string') throw new Error('Invalid token');
+                deviceTokens.add(cleanToken);
+                console.log(`📱 Device registered FULL TOKEN: ${cleanToken} (total: ${deviceTokens.size})`);
                 res.writeHead(200, { 'Content-Type': 'application/json' });
                 res.end(JSON.stringify({ status: 'registered' }));
                 poll();
