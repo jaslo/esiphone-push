@@ -91,7 +91,7 @@ function sendSilentPush(deviceToken) {
             },
         };
 
-        const req = https.request(options, res => {
+       const req = https.request(options, res => {
             let data = '';
             res.on('data', chunk => data += chunk);
             res.on('end', () => {
@@ -163,13 +163,18 @@ async function poll() {
         if (sgv) {
             console.log(`📊 Latest SGV: ${sgv.sgv} at ${new Date(sgv.date).toISOString()}`);
         }
-        // Send silent push to all registered devices regardless —
-        // the app will fetch fresh data from Eversense directly.
-        await Promise.allSettled([...deviceTokens].map(sendSilentPush));
+        console.log(`📤 Attempting push to ${deviceTokens.size} device(s)...`);
+        const results = await Promise.allSettled([...deviceTokens].map(sendSilentPush));
+        results.forEach((r, i) => {
+            if (r.status === 'rejected') {
+                console.error(`❌ Push failed:`, r.reason);
+            }
+        });
     } catch (err) {
         console.error('Poll error:', err.message);
     }
 }
+
 
 // ---------------------------------------------------------------------------
 // HTTP server — handles device token registration from the iPhone app
