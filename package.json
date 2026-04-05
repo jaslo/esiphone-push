@@ -7,7 +7,7 @@
     "start": "node index.js"
   },
   "dependencies": {
-    "apn": "^2.2.0"
+    "@parse/node-apn": "^6.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
